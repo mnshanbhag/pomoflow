@@ -1,5 +1,5 @@
 /* ------------------------------------------------------------------ */
-/* Pomoflow — glassmorphic dark theme                                  */
+/* PomoFlow — glassmorphic dark theme                                  */
 /* ------------------------------------------------------------------ */
 
 :root {
@@ -51,22 +51,45 @@ button, input { font-family: inherit; color: inherit; }
   white-space: nowrap; border: 0;
 }
 
+/* Two columns so the collapsed settings box can sit beside the brand in row 1
+   instead of consuming a full-width band of its own. */
 .app {
   max-width: 980px;
   margin: 0 auto;
   padding: 28px 22px 48px;
   display: grid;
+  grid-template-columns: 1fr auto;
   gap: 18px;
+  align-items: start;
 }
+.timer-panel,
+.stats-panel,
+.foot { grid-column: 1 / -1; }
 
 /* --- brand ------------------------------------------------------ */
 .brand {
+  grid-column: 1;
+  grid-row: 1;
   display: flex;
   align-items: center;
   gap: 12px;
   padding: 4px 8px;
 }
-.logo { font-size: 32px; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.4)); }
+.logo {
+  width: 42px;
+  height: 42px;
+  flex: none;
+  filter: drop-shadow(0 4px 10px rgba(0,0,0,0.45));
+  transform-origin: 50% 72%;
+  animation: tomato-wobble 5s ease-in-out infinite;
+}
+@keyframes tomato-wobble {
+  0%, 100% { transform: rotate(-6deg); }
+  50%      { transform: rotate(6deg) scale(1.05); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .logo { animation: none; }
+}
 .brand-title {
   margin: 0;
   font-size: 22px;
@@ -89,6 +112,7 @@ button, input { font-family: inherit; color: inherit; }
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 12px;
   margin-bottom: 14px;
 }
 .panel-header h2 {
@@ -101,50 +125,90 @@ button, input { font-family: inherit; color: inherit; }
 }
 
 /* --- config panel ----------------------------------------------- */
-.config-panel { padding: 16px 22px; }
+/* Expanded: a full-width drawer on its own row beneath the brand. */
+.config-panel {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  padding: 16px 22px;
+}
+
+/* This header is a control, not a section shout — sentence case, no tracking. */
+.config-panel .panel-header h2 {
+  text-transform: none;
+  letter-spacing: 0.2px;
+  font-size: 13px;
+}
+.config-panel .panel-header { cursor: pointer; }
+
+/* Collapsed: a small pill in the top-right corner, sharing row 1 with the
+   brand so it costs no vertical space. */
+.config-panel.is-collapsed {
+  grid-column: 2;
+  grid-row: 1;
+  justify-self: end;
+  align-self: center;
+  padding: 2px 6px 2px 12px;
+  border-radius: 999px;
+}
+.config-panel.is-collapsed .panel-header {
+  margin-bottom: 0;
+  gap: 4px;
+}
+.config-panel.is-collapsed .panel-header h2 { font-size: 12px; }
+.config-panel.is-collapsed .btn-ghost { padding: 2px 4px; font-size: 11px; }
 
 .config-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 14px 22px;
-  align-items: end;
+  column-gap: 32px;
 }
 
-.stepper {
-  display: grid;
-  gap: 6px;
+/* Label left, control right, hairline between rows. */
+.setting {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 42px;
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+  font-size: 14px;
+  user-select: none;
 }
-.stepper-label {
-  font-size: 12px;
-  color: var(--text-dim);
-  letter-spacing: 0.4px;
+.setting-label { color: var(--text-dim); }
+.setting input[type="checkbox"] {
+  width: 17px; height: 17px;
+  flex: none;
+  accent-color: var(--accent);
+  cursor: pointer;
 }
+
 .stepper-control {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  background: rgba(255,255,255,0.04);
+  gap: 2px;
+  flex: none;
+  background: rgba(255,255,255,0.05);
   border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  padding: 6px 8px;
+  border-radius: 999px;
+  padding: 2px;
 }
 .stepper-control button {
-  width: 28px; height: 28px;
-  border-radius: 8px;
-  border: 1px solid var(--border);
-  background: rgba(255,255,255,0.05);
-  color: var(--text);
+  width: 24px; height: 24px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-dim);
   cursor: pointer;
-  font-size: 18px;
+  font-size: 15px;
   line-height: 1;
 }
-.stepper-control button:hover { background: rgba(255,255,255,0.12); }
+.stepper-control button:hover { background: rgba(255,255,255,0.12); color: var(--text); }
 .stepper-control input {
-  width: 56px;
+  width: 32px;
   background: transparent;
   border: 0;
   text-align: center;
-  font-size: 18px;
+  font-size: 14px;
   font-weight: 600;
   -moz-appearance: textfield;
 }
@@ -153,29 +217,44 @@ button, input { font-family: inherit; color: inherit; }
   -webkit-appearance: none;
   margin: 0;
 }
-.unit { color: var(--text-dim); font-size: 13px; }
+.unit { color: var(--text-dim); font-size: 11px; min-width: 20px; }
 
-.toggle {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 14px;
-  user-select: none;
-}
-.toggle input { width: 18px; height: 18px; accent-color: var(--accent); }
-
-.save-btn {
+/* --- config footer: save status + destructive action ------------- */
+.config-foot {
   grid-column: 1 / -1;
-  justify-self: start;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 30px;
+  margin-top: 14px;
 }
 .save-status {
-  align-self: center;
-  font-size: 13px;
+  font-size: 12px;
   color: var(--text-dim);
   min-height: 1em;
 }
 .save-status.ok { color: var(--phase-short); }
 .save-status.err { color: var(--danger); }
+
+.btn-quiet {
+  padding: 5px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  background: transparent;
+}
+.btn-danger {
+  color: var(--danger);
+  border-color: rgba(255, 107, 107, 0.35);
+}
+.btn-danger:hover { background: rgba(255, 107, 107, 0.14); }
+.confirm {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.confirm[hidden] { display: none; }
+.confirm-q { font-size: 12px; color: var(--text-dim); }
 
 /* --- timer panel ------------------------------------------------ */
 .timer-panel {
@@ -196,9 +275,13 @@ body[data-phase="focus"]    .phase { color: var(--phase-focus); }
 body[data-phase="short_break"] .phase { color: var(--phase-short); }
 body[data-phase="long_break"]  .phase { color: var(--phase-long); }
 
+/* Caps at 286px (a further 15% down from 336px) and tracks BOTH viewport axes,
+   so a short window shrinks the ring instead of clipping it. The 136px floor
+   keeps the countdown legible on very small screens. */
 .ring {
   position: relative;
-  width: min(420px, 78vw);
+  container-type: inline-size;
+  width: max(136px, min(286px, 61vw, 41vh));
   aspect-ratio: 1 / 1;
 }
 .ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
@@ -227,15 +310,23 @@ body[data-phase="long_break"]  .ring-progress { stroke: var(--phase-long); }
   place-content: center;
   text-align: center;
 }
+/* Sized against the ring (cqw) rather than the viewport, so the digits keep
+   their proportions whether the ring is capped at 336px or shrunk by a short
+   window. See the container-type declaration on .ring. */
 .time {
   font-variant-numeric: tabular-nums;
   font-feature-settings: "tnum";
-  font-size: clamp(48px, 11vw, 84px);
+  font-size: clamp(32px, 20cqw, 67px);
   font-weight: 700;
   letter-spacing: 1px;
   text-shadow: 0 4px 18px rgba(0,0,0,0.4);
 }
-.cycle { color: var(--text-dim); font-size: 13px; letter-spacing: 1px; margin-top: 4px; }
+.cycle {
+  color: var(--text-dim);
+  font-size: clamp(11px, 3.9cqw, 13px);
+  letter-spacing: 1px;
+  margin-top: 4px;
+}
 
 .controls {
   display: flex;
@@ -344,10 +435,21 @@ button[aria-expanded="false"] .chev { transform: rotate(-90deg); }
   .config-grid { grid-template-columns: 1fr; }
   .stats-row   { grid-template-columns: 1fr 1fr; }
   .stat-history { grid-column: 1 / -1; }
-  .time { font-size: clamp(44px, 16vw, 64px); }
 }
 
-/* --- collapsed drawer (F6 req: prefs collapsed by default on mobile) */
-@media (max-width: 700px) {
-  .config-panel.is-collapsed .config-grid { display: none; }
+/* Narrow phones: the brand and the collapsed pill can't both keep their full
+   width on one row, so the pill drops to its chevron alone. */
+@media (max-width: 480px) {
+  /* Same treatment as .sr-only — the heading stays in the a11y tree. */
+  .config-panel.is-collapsed .panel-header h2 {
+    position: absolute;
+    width: 1px; height: 1px;
+    padding: 0; margin: -1px;
+    overflow: hidden; clip: rect(0, 0, 0, 0);
+    white-space: nowrap; border: 0;
+  }
+  .config-panel.is-collapsed { padding: 2px 6px; }
 }
+
+/* --- collapsed drawer (F6 req: prefs collapsed by default, every width) */
+.config-panel.is-collapsed .config-grid { display: none; }

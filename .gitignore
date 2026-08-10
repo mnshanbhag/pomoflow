@@ -1,9 +1,5 @@
-# Python
-__pycache__/
-*.py[cod]
-.venv/
-venv/
+# Vercel
+.vercel
 
-# Runtime state (auto-created on first POST; see README "Reset")
-progress.json
-progress.json.tmp
+# Local Claude Code overrides (including atomic-write temp files)
+.claude/settings.local.json*

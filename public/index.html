@@ -4,28 +4,59 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#0b0d1a" />
-  <title>Pomoflow — Configurable Pomodoro Timer</title>
-  <link rel="stylesheet" href="/static/styles.css" />
-  <link rel="icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><text y='52' font-size='52'>🍅</text></svg>" />
+  <title>PomoFlow — Configurable Pomodoro Timer</title>
+  <link rel="stylesheet" href="/styles.css" />
+  <!-- Same tomato as the header mark, simplified for 16px legibility. -->
+  <link rel="icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><ellipse cx='32' cy='39' rx='22' ry='20.5' fill='%23f0322b'/><circle cx='32' cy='39' r='14' fill='%232a0f1c' opacity='0.22'/><path d='M32 25a14 14 0 0 1 14 14h-14z' fill='%23ffffff' opacity='0.92'/><g fill='%233aa655' transform='translate(32 19)'><ellipse rx='9.5' ry='3.5'/><ellipse rx='9.5' ry='3.5' transform='rotate(72)'/><ellipse rx='9.5' ry='3.5' transform='rotate(144)'/><ellipse rx='9.5' ry='3.5' transform='rotate(216)'/><ellipse rx='9.5' ry='3.5' transform='rotate(288)'/></g></svg>" />
 </head>
 <body>
   <main class="app">
     <header class="brand">
-      <span class="logo" aria-hidden="true">🍅</span>
-      <h1 class="brand-title">Pomoflow</h1>
+      <!-- Tomato-as-timer: the white quarter wedge is a clock dial, echoing the
+           progress ring below and tying the mark to the Pomodoro idea. -->
+      <svg class="logo" viewBox="0 0 64 64" aria-hidden="true" focusable="false">
+        <defs>
+          <radialGradient id="tomato-body" cx="34%" cy="28%" r="80%">
+            <stop offset="0%"   stop-color="#ff8f76" />
+            <stop offset="45%"  stop-color="#f5453a" />
+            <stop offset="100%" stop-color="#c0161f" />
+          </radialGradient>
+        </defs>
+        <ellipse cx="32" cy="39" rx="22" ry="20.5" fill="url(#tomato-body)" />
+        <!-- recessed dial face -->
+        <circle cx="32" cy="39" r="14" fill="#2a0f1c" opacity=".22" />
+        <path d="M32 25a14 14 0 0 1 14 14h-14z" fill="#fff" opacity=".92" />
+        <circle cx="32" cy="39" r="2" fill="#fff" />
+        <!-- five-petal calyx -->
+        <g fill="#3aa655" transform="translate(32 19)">
+          <ellipse rx="9.5" ry="3.5" />
+          <ellipse rx="9.5" ry="3.5" transform="rotate(72)" />
+          <ellipse rx="9.5" ry="3.5" transform="rotate(144)" />
+          <ellipse rx="9.5" ry="3.5" transform="rotate(216)" />
+          <ellipse rx="9.5" ry="3.5" transform="rotate(288)" />
+        </g>
+        <path d="M32 19c0-4 1.5-7 4.5-9" fill="none" stroke="#3aa655"
+              stroke-width="3.2" stroke-linecap="round" />
+      </svg>
+      <h1 class="brand-title">PomoFlow</h1>
     </header>
 
     <!-- Configuration drawer -->
-    <section class="panel config-panel" aria-labelledby="config-heading">
+    <!-- Starts collapsed; the class is set here rather than in JS so the panel
+         never flashes open before the script runs. -->
+    <section class="panel config-panel is-collapsed" aria-labelledby="config-heading">
       <div class="panel-header">
         <h2 id="config-heading">Settings</h2>
-        <button class="btn btn-ghost" id="toggle-config" type="button" aria-expanded="true">
+        <button class="btn btn-ghost" id="toggle-config" type="button"
+                aria-expanded="false" aria-controls="config-body" aria-label="Toggle settings">
           <span class="chev" aria-hidden="true">▾</span>
         </button>
       </div>
+      <!-- One row per setting: label left, compact control right. Preferences
+           save themselves on change, so there is no Save button. -->
       <div class="config-grid" id="config-body">
-        <label class="stepper">
-          <span class="stepper-label">Focus</span>
+        <label class="setting">
+          <span class="setting-label">Focus</span>
           <span class="stepper-control">
             <button type="button" data-step="-1" data-target="focus_minutes" aria-label="Decrease focus">−</button>
             <input type="number" id="focus_minutes" min="1" max="120" step="1" />
@@ -34,8 +65,8 @@
           </span>
         </label>
 
-        <label class="stepper">
-          <span class="stepper-label">Short break</span>
+        <label class="setting">
+          <span class="setting-label">Short break</span>
           <span class="stepper-control">
             <button type="button" data-step="-1" data-target="short_break_minutes" aria-label="Decrease short break">−</button>
             <input type="number" id="short_break_minutes" min="1" max="30" step="1" />
@@ -44,8 +75,8 @@
           </span>
         </label>
 
-        <label class="stepper">
-          <span class="stepper-label">Long break</span>
+        <label class="setting">
+          <span class="setting-label">Long break</span>
           <span class="stepper-control">
             <button type="button" data-step="-1" data-target="long_break_minutes" aria-label="Decrease long break">−</button>
             <input type="number" id="long_break_minutes" min="5" max="60" step="1" />
@@ -54,8 +85,8 @@
           </span>
         </label>
 
-        <label class="stepper">
-          <span class="stepper-label">Sessions before long break</span>
+        <label class="setting">
+          <span class="setting-label">Sessions before long break</span>
           <span class="stepper-control">
             <button type="button" data-step="-1" data-target="sessions_before_long_break" aria-label="Decrease sessions before long break">−</button>
             <input type="number" id="sessions_before_long_break" min="2" max="10" step="1" />
@@ -64,18 +95,29 @@
           </span>
         </label>
 
-        <label class="toggle">
+        <label class="setting">
+          <span class="setting-label">Sound chime</span>
           <input type="checkbox" id="sound_enabled" />
-          <span>Sound chime</span>
         </label>
 
-        <label class="toggle">
+        <label class="setting">
+          <span class="setting-label">Desktop notifications</span>
           <input type="checkbox" id="notifications_enabled" />
-          <span>Desktop notifications</span>
         </label>
 
-        <button class="btn btn-primary save-btn" id="save-preferences" type="button">Save settings</button>
-        <span class="save-status" id="save-status" role="status" aria-live="polite"></span>
+        <div class="config-foot">
+          <span class="save-status" id="save-status" role="status" aria-live="polite"></span>
+          <!-- Two-step inline confirm rather than confirm(); a modal dialog here
+               would block the page and is heavier than the action deserves. -->
+          <span class="danger-zone">
+            <button class="btn btn-quiet btn-danger" id="clear-stats" type="button">Clear stats</button>
+            <span class="confirm" id="clear-confirm" hidden>
+              <span class="confirm-q">Clear today's stats and history?</span>
+              <button class="btn btn-quiet btn-danger" id="clear-yes" type="button">Clear</button>
+              <button class="btn btn-quiet" id="clear-no" type="button">Cancel</button>
+            </span>
+          </span>
+        </div>
       </div>
     </section>
 
@@ -123,6 +165,6 @@
     </footer>
   </main>
 
-  <script src="/static/app.js" defer></script>
+  <script src="/app.js" defer></script>
 </body>
 </html>

@@ -1,40 +1,62 @@
-# Pomoflow
+# PomoFlow
 
 A minimalist Pomodoro timer with configurable focus and break durations.
-See the full spec: `../AgentForge/artifacts/pomoflow_tech_spec.md`.
+Entirely static — no backend, no build step.
 
-## Run
+## Run locally
+
+Any static file server pointed at `public/` works:
 
 ```bash
-cd ../pomoflow            # if you're inside AgentForge/
-# or:  cd /home/mitesh/agy-projects/pomoflow
-python3 -m venv .venv
-.venv/bin/pip install -r requirements.txt
-.venv/bin/python server.py
+cd /home/mitesh/agy-projects/pomoflow
+python3 -m http.server 3100 --directory public
 ```
 
 Then open `http://localhost:3100`.
 
-Port 3100 is the default. Override it with `PORT`:
-
-```bash
-PORT=3200 .venv/bin/python server.py   # http://localhost:3200
-```
+Opening `public/index.html` directly via `file://` also works, but the paths
+in `index.html` are absolute (`/app.js`), so prefer the server.
 
 ## Layout
 
 ```
 pomoflow/
-├── server.py          # Flask backend (3 JSON endpoints + static)
-├── requirements.txt
-├── progress.json      # auto-created on first POST; persisted state
-├── static/
+├── public/
 │   ├── index.html
 │   ├── styles.css
-│   └── app.js
+│   └── app.js      # timer + localStorage store
 └── README.md
 ```
 
+## Storage
+
+Preferences, today's stats, and the last 10 sessions live in `localStorage`
+under the key `pomoflow.state.v1`. State is **per browser** — it does not sync
+across devices, and clearing site data resets it.
+
+Today's counters roll over automatically when the calendar day changes; the
+history list is global and keeps the most recent 10 entries.
+
+Preferences save themselves as you change them — there is no save button.
+
 ## Reset
 
-Delete `progress.json` to start with default preferences and zero stats.
+**Stats only:** open Settings and use **Clear stats**. This zeroes today's
+counters and empties the session history; your preferences are kept.
+
+**Everything, including preferences:** clear the key from the browser console,
+then reload.
+
+```js
+localStorage.removeItem("pomoflow.state.v1");
+```
+
+## Deploy
+
+Static deploy on Vercel — framework preset **Other**, no build command, output
+directory `public`.
+
+```bash
+vercel          # preview
+vercel --prod   # promote
+```

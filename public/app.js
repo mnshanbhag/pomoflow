@@ -1,5 +1,5 @@
 /* ------------------------------------------------------------------ *
- * Pomoflow — single-source-of-truth state, drift-free timer driver    *
+ * PomoFlow — single-source-of-truth state, drift-free timer driver    *
  * ------------------------------------------------------------------ */
 
 (() => {
@@ -52,8 +52,11 @@
   const startBtn       = $("#start-btn");
   const resetBtn       = $("#reset-btn");
   const skipBtn        = $("#skip-btn");
-  const saveBtn        = $("#save-preferences");
   const saveStatus     = $("#save-status");
+  const clearStatsBtn  = $("#clear-stats");
+  const clearConfirm   = $("#clear-confirm");
+  const clearYesBtn    = $("#clear-yes");
+  const clearNoBtn     = $("#clear-no");
   const toggleCfgBtn   = $("#toggle-config");
   const configBody     = $("#config-body");
   const configPanel    = $(".config-panel");
@@ -64,6 +67,134 @@
   const RING_CIRCUMFERENCE = 2 * Math.PI * 100; // matches r="100" in styles.css
 
   // ------------------------------------------------------------------
+  // Store — localStorage is the whole backend. Preferences and stats are
+  // per-browser by design; there is no cross-device sync.
+  // ------------------------------------------------------------------
+  const STORAGE_KEY = "pomoflow.state.v1";
+  const HISTORY_LIMIT = 10;
+  const BOOLEAN_KEYS = ["sound_enabled", "notifications_enabled"];
+
+  const store = (() => {
+    function todayStr() {
+      const d = new Date();
+      const mm = String(d.getMonth() + 1).padStart(2, "0");
+      const dd = String(d.getDate()).padStart(2, "0");
+      return `${d.getFullYear()}-${mm}-${dd}`;
+    }
+
+    function seed() {
+      return {
+        preferences: { ...DEFAULTS },
+        history: [],
+        sessions_completed_today: 0,
+        focus_minutes_today: 0,
+        day_marker: todayStr(),
+      };
+    }
+
+    // Clamp out-of-range numerics, coerce booleans, drop unknown keys.
+    function clampPreferences(prefsIn) {
+      const cleaned = {};
+      for (const [key, value] of Object.entries(prefsIn || {})) {
+        if (BOUNDS[key]) {
+          const [lo, hi] = BOUNDS[key];
+          const iv = parseInt(value, 10);
+          if (Number.isNaN(iv)) continue;
+          cleaned[key] = Math.max(lo, Math.min(hi, iv));
+        } else if (BOOLEAN_KEYS.includes(key)) {
+          cleaned[key] = Boolean(value);
+        }
+        // Unknown keys are dropped.
+      }
+      return { ...DEFAULTS, ...cleaned };
+    }
+
+    // Reset today's counters if the calendar day has changed. History is
+    // global, not per-day — keep it.
+    function maybeRollover(s) {
+      const today = todayStr();
+      if (s.day_marker !== today) {
+        s.day_marker = today;
+        s.sessions_completed_today = 0;
+        s.focus_minutes_today = 0;
+      }
+      return s;
+    }
+
+    function read() {
+      let raw;
+      try {
+        raw = window.localStorage.getItem(STORAGE_KEY);
+      } catch (_) {
+        // Storage blocked (private mode, disabled cookies) — run ephemerally.
+        return seed();
+      }
+      if (!raw) return seed();
+
+      let data;
+      try {
+        data = JSON.parse(raw);
+      } catch (_) {
+        return seed(); // Corrupt entry: start clean rather than break the app.
+      }
+      if (!data || typeof data !== "object") return seed();
+
+      // Backfill any missing keys with defaults.
+      const merged = {
+        ...seed(),
+        preferences: { ...DEFAULTS, ...(data.preferences || {}) },
+        history: Array.isArray(data.history) ? data.history.slice(-HISTORY_LIMIT) : [],
+      };
+      for (const key of ["sessions_completed_today", "focus_minutes_today", "day_marker"]) {
+        if (key in data) merged[key] = data[key];
+      }
+      return merged;
+    }
+
+    // Throws on quota/blocked storage so callers can surface a save failure.
+    function write(s) {
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(s));
+      return s;
+    }
+
+    return {
+      load() {
+        const s = maybeRollover(read());
+        try { write(s); } catch (_) { /* read-only storage is still usable */ }
+        return s;
+      },
+
+      savePreferences(prefsIn) {
+        const s = maybeRollover(read());
+        // Partial update: merge over the persisted preferences first so that
+        // unspecified keys (e.g. toggles) keep their existing values.
+        s.preferences = clampPreferences({ ...s.preferences, ...prefsIn });
+        return write(s);
+      },
+
+      appendSession(phase, durationMinutes, timestamp) {
+        const s = maybeRollover(read());
+        s.history = [...s.history, { timestamp, phase, duration_minutes: durationMinutes }]
+          .slice(-HISTORY_LIMIT);
+        if (phase === "focus") {
+          s.sessions_completed_today += 1;
+          s.focus_minutes_today += durationMinutes;
+        }
+        return write(s);
+      },
+
+      // Wipes counters and history; preferences are deliberately untouched.
+      clearStats() {
+        const s = maybeRollover(read());
+        s.history = [];
+        s.sessions_completed_today = 0;
+        s.focus_minutes_today = 0;
+        return write(s);
+      },
+    };
+  })();
+
+  // ------------------------------------------------------------------
   // Persistence (debounced)
   // ------------------------------------------------------------------
   let prefsSaveTimer = null;
@@ -72,45 +203,31 @@
     prefsSaveTimer = setTimeout(savePrefsNow, 600);
   }
 
-  async function savePrefsNow() {
-    setSaveStatus("Saving…");
+  function savePrefsNow() {
     try {
-      const res = await fetch("/api/preferences", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ preferences: state.preferences }),
-      });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json();
-      // Trust server clamp.
-      state.preferences = { ...state.preferences, ...data.preferences };
+      const saved = store.savePreferences(state.preferences);
+      // Trust the clamp.
+      state.preferences = { ...state.preferences, ...saved.preferences };
       setSaveStatus("Saved ✓", "ok");
     } catch (err) {
       setSaveStatus(`Save failed: ${err.message}`, "err");
     }
   }
 
-  async function postSession(phase, durationMinutes) {
+  function postSession(phase, durationMinutes) {
     try {
       const timestamp = new Date().toISOString();
-      const res = await fetch("/api/sessions", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phase, duration_minutes: durationMinutes, timestamp }),
-      });
-      if (!res.ok) return; // non-fatal; we'll re-pull on next state refresh
-      const data = await res.json();
-      hydrateTodayFromServer(data);
+      hydrateTodayFrom(store.appendSession(phase, durationMinutes, timestamp));
       render();
     } catch (_) {
-      // Network error — keep running locally; degrade gracefully.
+      // Storage full or blocked — keep running with in-memory counters.
     }
   }
 
-  function hydrateTodayFromServer(server) {
-    state.today.sessions_completed = server.sessions_completed_today ?? 0;
-    state.today.focus_minutes      = server.focus_minutes_today ?? 0;
-    state.today.history            = Array.isArray(server.history) ? server.history : [];
+  function hydrateTodayFrom(stored) {
+    state.today.sessions_completed = stored.sessions_completed_today ?? 0;
+    state.today.focus_minutes      = stored.focus_minutes_today ?? 0;
+    state.today.history            = Array.isArray(stored.history) ? stored.history : [];
   }
 
   let saveStatusClearTimer = null;
@@ -133,16 +250,14 @@
   // ------------------------------------------------------------------
   // Initial load
   // ------------------------------------------------------------------
-  async function loadInitialState() {
+  function loadInitialState() {
     try {
-      const res = await fetch("/api/state", { cache: "no-store" });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json();
-      state.preferences = { ...DEFAULTS, ...data.preferences };
-      hydrateTodayFromServer(data);
+      const stored = store.load();
+      state.preferences = { ...DEFAULTS, ...stored.preferences };
+      hydrateTodayFrom(stored);
     } catch (err) {
-      // Network down: keep defaults; user can still configure locally.
-      console.warn("Could not load server state:", err);
+      // Storage unavailable: keep defaults; the timer still works this session.
+      console.warn("Could not load saved state:", err);
     }
     // Sync inputs from preferences.
     PREFS_KEYS.forEach((key) => syncInputFromPrefs(key));
@@ -440,24 +555,36 @@
     }
   });
 
-  // Explicit save button (force-flush the debounce + show status)
-  saveBtn.addEventListener("click", () => {
-    clearTimeout(prefsSaveTimer);
-    savePrefsNow();
+  // Clear stats — two-step confirm, swapping the trigger for the confirmation.
+  function showClearConfirm(show) {
+    clearStatsBtn.hidden = show;
+    clearConfirm.hidden = !show;
+  }
+
+  clearStatsBtn.addEventListener("click", () => showClearConfirm(true));
+  clearNoBtn.addEventListener("click", () => showClearConfirm(false));
+  clearYesBtn.addEventListener("click", () => {
+    try {
+      hydrateTodayFrom(store.clearStats());
+      setSaveStatus("Stats cleared", "ok");
+    } catch (err) {
+      setSaveStatus(`Clear failed: ${err.message}`, "err");
+    }
+    showClearConfirm(false);
+    render();
   });
 
-  // Collapse/expand config drawer
-  toggleCfgBtn.addEventListener("click", () => {
+  // Collapse/expand config drawer. The listener sits on the header rather than
+  // the button so the whole compact box is a hit target when collapsed; clicks
+  // on the button bubble up to here, so it still toggles exactly once.
+  configPanel.querySelector(".panel-header").addEventListener("click", () => {
     const collapsed = configPanel.classList.toggle("is-collapsed");
     toggleCfgBtn.setAttribute("aria-expanded", String(!collapsed));
     if (window.innerWidth <= 700 && !collapsed) {
       configPanel.scrollIntoView({ behavior: "smooth", block: "start" });
     }
   });
-  if (window.innerWidth <= 700) {
-    configPanel.classList.add("is-collapsed");
-    toggleCfgBtn.setAttribute("aria-expanded", "false");
-  }
+  // The panel ships collapsed (see index.html) — nothing to do on load.
 
   // ------------------------------------------------------------------
   // Audio (synthesized chime via WebAudio)
@@ -506,7 +633,7 @@
       phase === "short_break" ? "Break over — back to focus 🔥" :
       "Long break over — well done ✨";
     try {
-      new Notification("Pomoflow", { body: title, silent: true });
+      new Notification("PomoFlow", { body: title, silent: true });
     } catch (_) { /* some browsers throw when called from background tabs */ }
   }
 
