@@ -76,11 +76,15 @@ by hand. The version also carries the short commit SHA as a tooltip.
 ## Deploy
 
 Static deploy on Vercel — output directory `public`, build command
-`node scripts/stamp-version.mjs`, configured in `vercel.json`.
+`node scripts/stamp-version.mjs`, configured in `vercel.json`. `installCommand`
+is deliberately a no-op: there are no dependencies to install.
 
-Production: https://pomoflow-henna.vercel.app
+- Production: https://pomoflow-henna.vercel.app
+- Repo: https://github.com/mnshanbhag/pomoflow (private)
 
-The Vercel project is connected to this GitHub repo, so deploys are automatic:
+### Everyday deploys
+
+The Vercel project is connected to the GitHub repo, so deploys are automatic:
 
 - push to `main` → production
 - push any other branch → preview URL
@@ -91,3 +95,42 @@ To deploy manually from a working copy instead:
 vercel          # preview
 vercel --prod   # production
 ```
+
+### First-time setup
+
+Already done for this project — recorded so it can be reproduced if the
+project is ever re-linked, forked, or moved.
+
+```bash
+# 1. Authenticate (interactive — opens a browser device flow)
+npx vercel login
+gh auth login                 # if the GitHub CLI isn't already signed in
+
+# 2. Create the GitHub repo and push
+gh repo create pomoflow --private --source=. --remote=origin --push
+
+# 3. Create the Vercel project and deploy once
+npx vercel --yes
+
+# 4. Wire GitHub -> Vercel so pushes deploy themselves
+npx vercel git connect --yes
+```
+
+Two things worth knowing:
+
+- **Step 3 deploys to production, not preview.** Vercel assigns a project's
+  first deployment to production regardless of flags. Later runs of plain
+  `vercel` are previews as expected.
+- **Step 4 is what makes auto-deploy work.** Steps 1–3 leave you with a live
+  site that only updates when you run the CLI by hand.
+
+### Verifying a deploy
+
+The footer is stamped at build time, so it doubles as a deploy check:
+
+```bash
+curl -s https://pomoflow-henna.vercel.app/version.js
+# window.__POMOFLOW_BUILD__ = {"version":"1.0.1","date":...,"commit":"a1f584b"};
+```
+
+If `commit` matches the SHA you just pushed, the new build is live.
