@@ -423,12 +423,27 @@ button[aria-expanded="false"] .chev { transform: rotate(-90deg); }
 .history li.long_break  .pill { color: var(--phase-long); }
 
 /* --- footer ----------------------------------------------------- */
+/* Blurb left, version/date right, on one line. Wraps to two stacked lines
+   when there isn't room for both. */
 .foot {
-  text-align: center;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 4px 18px;
   color: var(--text-dim);
   font-size: 12px;
-  padding-bottom: env(safe-area-inset-bottom);
+  padding: 0 8px env(safe-area-inset-bottom);
 }
+.foot-meta {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 7px;
+  white-space: nowrap;
+  margin-left: auto;
+}
+.version { font-variant-numeric: tabular-nums; }
+.foot-sep { opacity: 0.5; }
 
 /* --- responsive ------------------------------------------------- */
 @media (max-width: 700px) {
