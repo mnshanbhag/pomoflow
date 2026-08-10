@@ -1,21 +1,20 @@
 # PomoFlow
 
 A minimalist Pomodoro timer with configurable focus and break durations.
-Entirely static — no backend, no build step.
+Static frontend, no backend and no dependencies — the only build step stamps
+the version into the footer.
 
 ## Run locally
 
-Any static file server pointed at `public/` works:
-
 ```bash
 cd /home/mitesh/projects/pomoflow
-python3 -m http.server 3100 --directory public
+npm run dev          # stamps the version, then serves public/ on :3100
 ```
 
 Then open `http://localhost:3100`.
 
-Opening `public/index.html` directly via `file://` also works, but the paths
-in `index.html` are absolute (`/app.js`), so prefer the server.
+Any static file server pointed at `public/` also works; without the stamp step
+the footer just reads `dev · unreleased`.
 
 ## Layout
 
@@ -24,8 +23,12 @@ pomoflow/
 ├── public/
 │   ├── index.html
 │   ├── styles.css
-│   └── app.js      # timer + localStorage store
-└── README.md
+│   ├── app.js        # timer + localStorage store
+│   └── version.js    # generated, gitignored
+├── scripts/
+│   └── stamp-version.mjs
+├── package.json      # holds the version number
+└── vercel.json       # build command + output dir
 ```
 
 ## Storage
@@ -51,10 +54,29 @@ then reload.
 localStorage.removeItem("pomoflow.state.v1");
 ```
 
+## Versioning
+
+`package.json` is the single source of truth. `scripts/stamp-version.mjs` runs
+at build time and writes `public/version.js`, which the footer reads — so the
+displayed date is always the real deploy date, never a stale literal.
+
+Cut a release with npm's built-in bump (it commits and tags):
+
+```bash
+npm version patch    # 1.0.0 -> 1.0.1   bug fixes
+npm version minor    # 1.0.0 -> 1.1.0   new features
+npm version major    # 1.0.0 -> 2.0.0   breaking changes
+
+git push --follow-tags
+```
+
+The push triggers a Vercel build, which re-stamps the footer. Nothing to edit
+by hand. The version also carries the short commit SHA as a tooltip.
+
 ## Deploy
 
-Static deploy on Vercel — framework preset **Other**, no build command, output
-directory `public`.
+Static deploy on Vercel — output directory `public`, build command
+`node scripts/stamp-version.mjs`, configured in `vercel.json`.
 
 Production: https://pomoflow-henna.vercel.app
 

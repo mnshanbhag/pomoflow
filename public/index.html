@@ -160,18 +160,21 @@
       </div>
     </section>
 
-    <!-- Bump both values below when cutting a release; there is no build step
-         to inject them, so they are the single source of truth. -->
+    <!-- Version and date are filled in from /version.js, which the build step
+         stamps from package.json. The markup below is the un-built fallback. -->
     <footer class="foot">
       <small>Phase complete fires sound + notification (when enabled). Preferences &amp; today's stats persist across reloads.</small>
       <small class="foot-meta">
-        <span class="version">v1.0</span>
+        <span class="version" id="build-version">dev</span>
         <span class="foot-sep" aria-hidden="true">·</span>
-        <span>Deployed <time datetime="2026-08-10">10-Aug-2026</time></span>
+        <span>Deployed <time id="build-date">unreleased</time></span>
       </small>
     </footer>
   </main>
 
+  <!-- Build artifact; absent in an un-built checkout, hence the defensive read
+       in app.js and the fallback text in the footer. -->
+  <script src="/version.js" defer></script>
   <script src="/app.js" defer></script>
 </body>
 </html>

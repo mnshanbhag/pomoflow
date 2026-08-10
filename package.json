@@ -1,0 +1,10 @@
+{
+  "name": "pomoflow",
+  "version": "1.0.0",
+  "private": true,
+  "description": "A minimalist Pomodoro timer with configurable focus and break durations.",
+  "scripts": {
+    "build": "node scripts/stamp-version.mjs",
+    "dev": "node scripts/stamp-version.mjs && python3 -m http.server 3100 --directory public"
+  }
+}

@@ -275,13 +275,16 @@ body[data-phase="focus"]    .phase { color: var(--phase-focus); }
 body[data-phase="short_break"] .phase { color: var(--phase-short); }
 body[data-phase="long_break"]  .phase { color: var(--phase-long); }
 
-/* Caps at 286px (a further 15% down from 336px) and tracks BOTH viewport axes,
-   so a short window shrinks the ring instead of clipping it. The 136px floor
-   keeps the countdown legible on very small screens. */
+/* The ring takes whatever vertical room is left after the rest of the page.
+   `100dvh - <chrome>` is calibrated against the measured height of everything
+   else (brand, controls, stats, footer, padding); the short-viewport rules at
+   the bottom of this file shrink that chrome, which is what the 340px assumes.
+   Capped at 286px so it never dominates a tall window, floored at 120px so the
+   countdown stays legible when there is genuinely no room. */
 .ring {
   position: relative;
   container-type: inline-size;
-  width: max(136px, min(286px, 61vw, 41vh));
+  width: max(120px, min(286px, 61vw, 100dvh - 340px));
   aspect-ratio: 1 / 1;
 }
 .ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
@@ -464,6 +467,22 @@ button[aria-expanded="false"] .chev { transform: rotate(-90deg); }
     white-space: nowrap; border: 0;
   }
   .config-panel.is-collapsed { padding: 2px 6px; }
+}
+
+/* Short viewports: the ring can only shrink so far, so the fixed chrome has to
+   give too. Trims page padding, gaps, the brand mark, and panel padding to buy
+   back roughly 150px — enough for the whole app to fit without scrolling down
+   to about a 560px-tall window. */
+@media (max-height: 760px) {
+  .app { padding: 14px 22px 18px; gap: 12px; }
+  .logo { width: 32px; height: 32px; }
+  .brand { padding: 0 8px; }
+  .brand-title { font-size: 19px; }
+  .timer-panel { padding: 16px 22px 18px; gap: 12px; }
+  .phase { font-size: 11px; letter-spacing: 3px; }
+  .stats-panel { padding: 12px 22px; }
+  .stat-value { font-size: 26px; }
+  .foot { font-size: 11px; }
 }
 
 /* --- collapsed drawer (F6 req: prefs collapsed by default, every width) */

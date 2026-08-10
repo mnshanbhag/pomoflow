@@ -653,7 +653,28 @@
   });
 
   // ------------------------------------------------------------------
+  // Build stamp — populated by /version.js, which the build step generates.
+  // An un-built checkout has no such file, so the markup's fallback stands.
+  // ------------------------------------------------------------------
+  function renderBuildStamp() {
+    const build = window.__POMOFLOW_BUILD__;
+    if (!build) return;
+
+    const versionEl = document.getElementById("build-version");
+    const dateEl = document.getElementById("build-date");
+    if (versionEl && build.version) {
+      versionEl.textContent = `v${build.version}`;
+      if (build.commit) versionEl.title = `commit ${build.commit}`;
+    }
+    if (dateEl && build.date) {
+      dateEl.textContent = build.date;
+      if (build.iso) dateEl.setAttribute("datetime", build.iso);
+    }
+  }
+
+  // ------------------------------------------------------------------
   // Boot
   // ------------------------------------------------------------------
+  renderBuildStamp();
   loadInitialState();
 })();

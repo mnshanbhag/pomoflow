@@ -1,5 +1,11 @@
 # Vercel
 .vercel
 
+# Node
+node_modules/
+
+# Build artifact — stamped by scripts/stamp-version.mjs
+public/version.js
+
 # Local Claude Code overrides (including atomic-write temp files)
 .claude/settings.local.json*
