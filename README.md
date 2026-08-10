@@ -8,7 +8,7 @@ Entirely static — no backend, no build step.
 Any static file server pointed at `public/` works:
 
 ```bash
-cd /home/mitesh/agy-projects/pomoflow
+cd /home/mitesh/projects/pomoflow
 python3 -m http.server 3100 --directory public
 ```
 
