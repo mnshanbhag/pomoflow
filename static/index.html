@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0b0d1a" />
+  <title>Pomoflow — Configurable Pomodoro Timer</title>
+  <link rel="stylesheet" href="/static/styles.css" />
+  <link rel="icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><text y='52' font-size='52'>🍅</text></svg>" />
+</head>
+<body>
+  <main class="app">
+    <header class="brand">
+      <span class="logo" aria-hidden="true">🍅</span>
+      <h1 class="brand-title">Pomoflow</h1>
+    </header>
+
+    <!-- Configuration drawer -->
+    <section class="panel config-panel" aria-labelledby="config-heading">
+      <div class="panel-header">
+        <h2 id="config-heading">Settings</h2>
+        <button class="btn btn-ghost" id="toggle-config" type="button" aria-expanded="true">
+          <span class="chev" aria-hidden="true">▾</span>
+        </button>
+      </div>
+      <div class="config-grid" id="config-body">
+        <label class="stepper">
+          <span class="stepper-label">Focus</span>
+          <span class="stepper-control">
+            <button type="button" data-step="-1" data-target="focus_minutes" aria-label="Decrease focus">−</button>
+            <input type="number" id="focus_minutes" min="1" max="120" step="1" />
+            <span class="unit">min</span>
+            <button type="button" data-step="1" data-target="focus_minutes" aria-label="Increase focus">+</button>
+          </span>
+        </label>
+
+        <label class="stepper">
+          <span class="stepper-label">Short break</span>
+          <span class="stepper-control">
+            <button type="button" data-step="-1" data-target="short_break_minutes" aria-label="Decrease short break">−</button>
+            <input type="number" id="short_break_minutes" min="1" max="30" step="1" />
+            <span class="unit">min</span>
+            <button type="button" data-step="1" data-target="short_break_minutes" aria-label="Increase short break">+</button>
+          </span>
+        </label>
+
+        <label class="stepper">
+          <span class="stepper-label">Long break</span>
+          <span class="stepper-control">
+            <button type="button" data-step="-1" data-target="long_break_minutes" aria-label="Decrease long break">−</button>
+            <input type="number" id="long_break_minutes" min="5" max="60" step="1" />
+            <span class="unit">min</span>
+            <button type="button" data-step="1" data-target="long_break_minutes" aria-label="Increase long break">+</button>
+          </span>
+        </label>
+
+        <label class="stepper">
+          <span class="stepper-label">Sessions before long break</span>
+          <span class="stepper-control">
+            <button type="button" data-step="-1" data-target="sessions_before_long_break" aria-label="Decrease sessions before long break">−</button>
+            <input type="number" id="sessions_before_long_break" min="2" max="10" step="1" />
+            <span class="unit">×</span>
+            <button type="button" data-step="1" data-target="sessions_before_long_break" aria-label="Increase sessions before long break">+</button>
+          </span>
+        </label>
+
+        <label class="toggle">
+          <input type="checkbox" id="sound_enabled" />
+          <span>Sound chime</span>
+        </label>
+
+        <label class="toggle">
+          <input type="checkbox" id="notifications_enabled" />
+          <span>Desktop notifications</span>
+        </label>
+
+        <button class="btn btn-primary save-btn" id="save-preferences" type="button">Save settings</button>
+        <span class="save-status" id="save-status" role="status" aria-live="polite"></span>
+      </div>
+    </section>
+
+    <!-- Timer display -->
+    <section class="panel timer-panel" aria-labelledby="phase-label">
+      <p class="phase" id="phase-label">Focus</p>
+      <div class="ring" role="timer" aria-live="off" aria-atomic="true">
+        <svg viewBox="0 0 220 220" aria-hidden="true">
+          <circle class="ring-track" cx="110" cy="110" r="100" />
+          <circle class="ring-progress" id="ring-progress" cx="110" cy="110" r="100" />
+        </svg>
+        <div class="ring-center">
+          <span class="time" id="time-display">25:00</span>
+          <span class="cycle" id="cycle-display">Focus 1 / 4</span>
+        </div>
+      </div>
+      <div class="controls">
+        <button class="btn btn-secondary" id="reset-btn" type="button">Reset</button>
+        <button class="btn btn-primary" id="start-btn" type="button">Start</button>
+        <button class="btn btn-secondary" id="skip-btn" type="button">Skip ▶</button>
+      </div>
+    </section>
+
+    <!-- Stats -->
+    <section class="panel stats-panel" aria-labelledby="stats-heading">
+      <h2 id="stats-heading" class="sr-only">Today</h2>
+      <div class="stats-row">
+        <div class="stat">
+          <span class="stat-value" id="stat-sessions">0</span>
+          <span class="stat-label">Pomodoros today</span>
+        </div>
+        <div class="stat">
+          <span class="stat-value" id="stat-minutes">0</span>
+          <span class="stat-label">Focus minutes today</span>
+        </div>
+        <div class="stat stat-history">
+          <span class="stat-label">Recent sessions</span>
+          <ul class="history" id="history-list" aria-live="polite"></ul>
+        </div>
+      </div>
+    </section>
+
+    <footer class="foot">
+      <small>Phase complete fires sound + notification (when enabled). Preferences &amp; today's stats persist across reloads.</small>
+    </footer>
+  </main>
+
+  <script src="/static/app.js" defer></script>
+</body>
+</html>

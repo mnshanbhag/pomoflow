@@ -1,0 +1,9 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Runtime state (auto-created on first POST; see README "Reset")
+progress.json
+progress.json.tmp
