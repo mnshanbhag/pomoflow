@@ -56,7 +56,16 @@ localStorage.removeItem("pomoflow.state.v1");
 Static deploy on Vercel — framework preset **Other**, no build command, output
 directory `public`.
 
+Production: https://pomoflow-henna.vercel.app
+
+The Vercel project is connected to this GitHub repo, so deploys are automatic:
+
+- push to `main` → production
+- push any other branch → preview URL
+
+To deploy manually from a working copy instead:
+
 ```bash
 vercel          # preview
-vercel --prod   # promote
+vercel --prod   # production
 ```
