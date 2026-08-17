@@ -7,7 +7,7 @@ the version into the footer.
 ## Run locally
 
 ```bash
-cd /home/mitesh/projects/pomoflow
+cd pomoflow
 npm run dev          # stamps the version, then serves public/ on :3100
 ```
 
@@ -80,7 +80,7 @@ Static deploy on Vercel — output directory `public`, build command
 is deliberately a no-op: there are no dependencies to install.
 
 - Production: https://pomoflow-henna.vercel.app
-- Repo: https://github.com/mnshanbhag/pomoflow (private)
+- Repo: https://github.com/mnshanbhag/pomoflow
 
 ### Everyday deploys
 
