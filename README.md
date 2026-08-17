@@ -89,6 +89,11 @@ The Vercel project is connected to the GitHub repo, so deploys are automatic:
 - push to `main` → production
 - push any other branch → preview URL
 
+Docs-only pushes are skipped. `ignoreCommand` in `vercel.json` builds only when
+`public/`, `scripts/`, `package.json`, or `vercel.json` changed, so editing the
+README doesn't burn a deploy re-publishing identical files. (A version bump
+touches `package.json`, so releases still build.)
+
 To deploy manually from a working copy instead:
 
 ```bash
@@ -134,3 +139,8 @@ curl -s https://pomoflow-henna.vercel.app/version.js
 ```
 
 If `commit` matches the SHA you just pushed, the new build is live.
+
+The stamp names the commit that was *built*, which is not always `HEAD`: after a
+docs-only push the build is skipped by design, so the footer keeps pointing at
+the last code commit. That is correct, not stale — the live files really do come
+from that commit.
