@@ -1,6 +1,6 @@
 {
   "name": "pomoflow",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "private": true,
   "description": "A minimalist Pomodoro timer with configurable focus and break durations.",
   "scripts": {
