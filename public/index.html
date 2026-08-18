@@ -6,8 +6,19 @@
   <meta name="theme-color" content="#0b0d1a" />
   <title>PomoFlow — Configurable Pomodoro Timer</title>
   <link rel="stylesheet" href="/styles.css" />
+  <link rel="manifest" href="/manifest.json" />
   <!-- Same tomato as the header mark, simplified for 16px legibility. -->
   <link rel="icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><ellipse cx='32' cy='39' rx='22' ry='20.5' fill='%23f0322b'/><circle cx='32' cy='39' r='14' fill='%232a0f1c' opacity='0.22'/><path d='M32 25a14 14 0 0 1 14 14h-14z' fill='%23ffffff' opacity='0.92'/><g fill='%233aa655' transform='translate(32 19)'><ellipse rx='9.5' ry='3.5'/><ellipse rx='9.5' ry='3.5' transform='rotate(72)'/><ellipse rx='9.5' ry='3.5' transform='rotate(144)'/><ellipse rx='9.5' ry='3.5' transform='rotate(216)'/><ellipse rx='9.5' ry='3.5' transform='rotate(288)'/></g></svg>" />
+  <!-- Chrome can fire beforeinstallprompt before a deferred script has run,
+       and the event is only usable if it was captured. Stash it here and let
+       app.js pick it up; inline so it is listening from the first byte. -->
+  <script>
+    window.__pomoflowInstallPrompt = null;
+    addEventListener("beforeinstallprompt", (e) => {
+      e.preventDefault(); // suppress Chrome's own mini-infobar
+      window.__pomoflowInstallPrompt = e;
+    });
+  </script>
 </head>
 <body>
   <main class="app">
@@ -107,14 +118,19 @@
 
         <div class="config-foot">
           <span class="save-status" id="save-status" role="status" aria-live="polite"></span>
-          <!-- Two-step inline confirm rather than confirm(); a modal dialog here
-               would block the page and is heavier than the action deserves. -->
-          <span class="danger-zone">
-            <button class="btn btn-quiet btn-danger" id="clear-stats" type="button">Clear stats</button>
-            <span class="confirm" id="clear-confirm" hidden>
-              <span class="confirm-q">Clear today's stats and history?</span>
-              <button class="btn btn-quiet btn-danger" id="clear-yes" type="button">Clear</button>
-              <button class="btn btn-quiet" id="clear-no" type="button">Cancel</button>
+          <span class="foot-actions">
+            <!-- Shown only where the browser can actually install; app.js hides
+                 it again once PomoFlow is running as an installed app. -->
+            <button class="btn btn-quiet btn-install" id="install-btn" type="button" hidden>Install app</button>
+            <!-- Two-step inline confirm rather than confirm(); a modal dialog here
+                 would block the page and is heavier than the action deserves. -->
+            <span class="danger-zone">
+              <button class="btn btn-quiet btn-danger" id="clear-stats" type="button">Clear stats</button>
+              <span class="confirm" id="clear-confirm" hidden>
+                <span class="confirm-q">Clear today's stats and history?</span>
+                <button class="btn btn-quiet btn-danger" id="clear-yes" type="button">Clear</button>
+                <button class="btn btn-quiet" id="clear-no" type="button">Cancel</button>
+              </span>
             </span>
           </span>
         </div>

@@ -1,0 +1,24 @@
+<!-- App icon: the header's tomato-as-timer mark, standalone on a transparent
+     ground. Referenced by manifest.webmanifest with purpose "any". -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="512" height="512">
+  <defs>
+    <radialGradient id="tomato-body" cx="34%" cy="28%" r="80%">
+      <stop offset="0%"   stop-color="#ff8f76" />
+      <stop offset="45%"  stop-color="#f5453a" />
+      <stop offset="100%" stop-color="#c0161f" />
+    </radialGradient>
+  </defs>
+  <ellipse cx="32" cy="39" rx="22" ry="20.5" fill="url(#tomato-body)" />
+  <circle cx="32" cy="39" r="14" fill="#2a0f1c" opacity=".22" />
+  <path d="M32 25a14 14 0 0 1 14 14h-14z" fill="#fff" opacity=".92" />
+  <circle cx="32" cy="39" r="2" fill="#fff" />
+  <g fill="#3aa655" transform="translate(32 19)">
+    <ellipse rx="9.5" ry="3.5" />
+    <ellipse rx="9.5" ry="3.5" transform="rotate(72)" />
+    <ellipse rx="9.5" ry="3.5" transform="rotate(144)" />
+    <ellipse rx="9.5" ry="3.5" transform="rotate(216)" />
+    <ellipse rx="9.5" ry="3.5" transform="rotate(288)" />
+  </g>
+  <path d="M32 19c0-4 1.5-7 4.5-9" fill="none" stroke="#3aa655"
+        stroke-width="3.2" stroke-linecap="round" />
+</svg>

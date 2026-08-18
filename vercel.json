@@ -3,5 +3,13 @@
   "buildCommand": "node scripts/stamp-version.mjs",
   "installCommand": "echo 'no dependencies to install'",
   "outputDirectory": "public",
+  "headers": [
+    {
+      "source": "/sw.js",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" }
+      ]
+    }
+  ],
   "ignoreCommand": "git diff --quiet HEAD^ HEAD -- public scripts package.json vercel.json"
 }

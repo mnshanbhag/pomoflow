@@ -23,12 +23,15 @@ pomoflow/
 ├── public/
 │   ├── index.html
 │   ├── styles.css
-│   ├── app.js        # timer + localStorage store
-│   └── version.js    # generated, gitignored
+│   ├── app.js            # timer + localStorage store
+│   ├── sw.js             # service worker: offline shell
+│   ├── manifest.json     # web app manifest
+│   ├── icon.svg          # app icon (+ icon-maskable.svg)
+│   └── version.js        # generated, gitignored
 ├── scripts/
 │   └── stamp-version.mjs
-├── package.json      # holds the version number
-└── vercel.json       # build command + output dir
+├── package.json          # holds the version number
+└── vercel.json           # build command + output dir
 ```
 
 ## Storage
@@ -41,6 +44,37 @@ Today's counters roll over automatically when the calendar day changes; the
 history list is global and keeps the most recent 10 entries.
 
 Preferences save themselves as you change them — there is no save button.
+
+## Install as an app
+
+Settings has an **Install app** button next to *Clear stats*. On Chrome, Edge,
+and other Chromium browsers it opens the browser's own install dialog; PomoFlow
+then runs in its own window, without browser chrome, and appears in the app
+launcher. The button hides itself once you are running the installed copy.
+
+Safari and Firefox never expose an install prompt to the page, so there the
+button just tells you where their own menu item lives (Safari: *File → Add to
+Dock*, or *Share → Add to Home Screen* on iOS).
+
+This is what makes it installable:
+
+- `public/manifest.json` — name, colours, `display: standalone`, icons. Named
+  `.json` rather than the spec's `.webmanifest` so `python3 -m http.server`
+  serves it with a sane content type during local dev.
+- `public/sw.js` — a service worker, which Chrome requires before it will offer
+  an install prompt. It also makes the app work offline: the shell is precached,
+  and every same-origin GET is network-first, so a fresh deploy always wins
+  while online and the cache is only consulted when the network fails. The
+  cache name only needs bumping when the precache list itself changes.
+- `public/icon.svg` and `public/icon-maskable.svg` — the header's tomato mark.
+  The maskable one sits on the app background at 62% so launchers can crop it
+  to a circle or squircle without clipping.
+
+`vercel.json` serves `/sw.js` with `must-revalidate`, so a deploy can't be
+pinned to an old shell by a cached worker.
+
+Registration is skipped outside a secure context, so an un-built `file://`
+checkout behaves exactly as it did before.
 
 ## Reset
 

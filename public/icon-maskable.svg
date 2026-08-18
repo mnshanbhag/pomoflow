@@ -1,0 +1,33 @@
+<!-- Maskable variant: the same mark on the app's background, scaled to ~62% so
+     it survives whatever shape (circle, squircle, rounded square) the launcher
+     crops to. Referenced by manifest.webmanifest with purpose "maskable". -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="512" height="512">
+  <defs>
+    <radialGradient id="tomato-body-maskable" cx="34%" cy="28%" r="80%">
+      <stop offset="0%"   stop-color="#ff8f76" />
+      <stop offset="45%"  stop-color="#f5453a" />
+      <stop offset="100%" stop-color="#c0161f" />
+    </radialGradient>
+    <linearGradient id="icon-bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%"   stop-color="#181a36" />
+      <stop offset="100%" stop-color="#0b0d1a" />
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" fill="url(#icon-bg)" />
+  <!-- 0.62 scale about the icon centre keeps the mark inside the 80% safe zone. -->
+  <g transform="translate(32 32) scale(0.62) translate(-32 -35)">
+    <ellipse cx="32" cy="39" rx="22" ry="20.5" fill="url(#tomato-body-maskable)" />
+    <circle cx="32" cy="39" r="14" fill="#2a0f1c" opacity=".22" />
+    <path d="M32 25a14 14 0 0 1 14 14h-14z" fill="#fff" opacity=".92" />
+    <circle cx="32" cy="39" r="2" fill="#fff" />
+    <g fill="#3aa655" transform="translate(32 19)">
+      <ellipse rx="9.5" ry="3.5" />
+      <ellipse rx="9.5" ry="3.5" transform="rotate(72)" />
+      <ellipse rx="9.5" ry="3.5" transform="rotate(144)" />
+      <ellipse rx="9.5" ry="3.5" transform="rotate(216)" />
+      <ellipse rx="9.5" ry="3.5" transform="rotate(288)" />
+    </g>
+    <path d="M32 19c0-4 1.5-7 4.5-9" fill="none" stroke="#3aa655"
+          stroke-width="3.2" stroke-linecap="round" />
+  </g>
+</svg>

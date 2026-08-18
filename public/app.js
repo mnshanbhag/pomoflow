@@ -63,6 +63,7 @@
   const statSessions   = $("#stat-sessions");
   const statMinutes    = $("#stat-minutes");
   const historyList    = $("#history-list");
+  const installBtn     = $("#install-btn");
 
   const RING_CIRCUMFERENCE = 2 * Math.PI * 100; // matches r="100" in styles.css
 
@@ -587,6 +588,81 @@
   // The panel ships collapsed (see index.html) — nothing to do on load.
 
   // ------------------------------------------------------------------
+  // Install as app (PWA)
+  // ------------------------------------------------------------------
+  // Chrome hands us a beforeinstallprompt event when the page qualifies as
+  // installable; index.html captures it early (it can fire before this
+  // deferred script runs) and parks it on window. All this section does is
+  // surface it as a button in the settings footer, since the browser's own
+  // install affordance is buried in a menu.
+
+  function isStandalone() {
+    return window.matchMedia("(display-mode: standalone)").matches ||
+           window.matchMedia("(display-mode: minimal-ui)").matches ||
+           window.navigator.standalone === true; // iOS Safari
+  }
+
+  // Browsers without beforeinstallprompt (Safari, Firefox) still install —
+  // just by hand, and each calls the menu item something different.
+  function manualInstallHint() {
+    const ua = navigator.userAgent;
+    if (/iPhone|iPad|iPod/.test(ua)) {
+      return "In Safari: Share → Add to Home Screen.";
+    }
+    if (/Macintosh/.test(ua) && /Safari/.test(ua) && !/Chrome|Chromium/.test(ua)) {
+      return "In Safari: File → Add to Dock.";
+    }
+    return "Not offered here — try your browser's menu for “Install” or “Add to Home Screen”.";
+  }
+
+  // Once installed there is nothing left to offer, so the button disappears
+  // rather than sitting there inert. Browsers without beforeinstallprompt keep
+  // it — clicking then explains where their own menu item lives.
+  function renderInstallButton() {
+    installBtn.hidden = isStandalone();
+  }
+
+  installBtn.addEventListener("click", async () => {
+    const prompt = window.__pomoflowInstallPrompt;
+    if (!prompt) { setSaveStatus(manualInstallHint(), ""); return; }
+    installBtn.disabled = true;
+    try {
+      prompt.prompt();
+      const { outcome } = await prompt.userChoice;
+      // The event is single-use whichever way the user answered; a dismissal
+      // means the browser will offer a fresh one on some later visit.
+      window.__pomoflowInstallPrompt = null;
+      setSaveStatus(outcome === "accepted" ? "Installing…" : "Install dismissed",
+                    outcome === "accepted" ? "ok" : "");
+    } catch (err) {
+      setSaveStatus(`Install failed: ${err.message}`, "err");
+    } finally {
+      installBtn.disabled = false;
+      renderInstallButton();
+    }
+  });
+
+  window.addEventListener("appinstalled", () => {
+    window.__pomoflowInstallPrompt = null;
+    setSaveStatus("Installed", "ok");
+    renderInstallButton();
+  });
+  window.matchMedia("(display-mode: standalone)")
+        .addEventListener("change", renderInstallButton);
+
+  // The service worker is what makes the app work offline — and Chrome will
+  // not offer an install prompt without one that handles fetch.
+  function registerServiceWorker() {
+    if (!("serviceWorker" in navigator)) return;
+    // Secure-context only; a file:// or plain-http checkout just skips this.
+    const local = ["localhost", "127.0.0.1", "[::1]"].includes(location.hostname);
+    if (location.protocol !== "https:" && !local) return;
+    navigator.serviceWorker.register("/sw.js").catch(() => {
+      /* Offline support is a bonus; a failed registration changes nothing else. */
+    });
+  }
+
+  // ------------------------------------------------------------------
   // Audio (synthesized chime via WebAudio)
   // ------------------------------------------------------------------
   let audioCtx = null;
@@ -676,5 +752,7 @@
   // Boot
   // ------------------------------------------------------------------
   renderBuildStamp();
+  renderInstallButton();
+  registerServiceWorker();
   loadInitialState();
 })();
